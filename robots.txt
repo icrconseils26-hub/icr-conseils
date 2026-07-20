@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://VOTRE-DOMAINE/sitemap.xml
+Sitemap: https://icrconseils26-hub.github.io/icr-conseils/sitemap.xml
