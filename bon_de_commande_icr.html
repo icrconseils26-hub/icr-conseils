@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICR Conseils – Bon de commande</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #F8F8F6; color: #26344A; padding: 40px 24px; }
+.page { max-width: 720px; margin: 0 auto; }
+
+/* HEADER */
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1.5px solid rgba(38,52,74,0.15); }
+.brand-name { font-family: 'DM Serif Display', serif; font-size: 22px; }
+.brand-tagline { font-size: 11px; color: #789682; letter-spacing: 1.6px; text-transform: uppercase; margin-top: 4px; }
+.brand-address { font-size: 11px; color: rgba(38,52,74,0.5); margin-top: 8px; line-height: 1.6; }
+.doc-title { text-align: right; }
+.doc-label { font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #789682; margin-bottom: 4px; }
+.doc-name { font-family: 'DM Serif Display', serif; font-size: 28px; line-height: 1.1; }
+.doc-date { font-size: 11px; color: rgba(38,52,74,0.45); margin-top: 6px; }
+
+/* STEPS */
+.step { display: none; }
+.step.active { display: block; }
+
+/* SECTION */
+.section { background: #fff; border-radius: 16px; border: 1.5px solid rgba(38,52,74,0.09); padding: 28px; margin-bottom: 20px; }
+.section-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(38,52,74,0.4); margin-bottom: 18px; }
+
+/* FORMULE SELECTOR */
+.formules { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.formule-card {
+  border: 2px solid rgba(38,52,74,0.1);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+}
+.formule-card:hover { border-color: #E8633A; }
+.formule-card.selected { border-color: #E8633A; background: rgba(232,99,58,0.04); }
+.formule-card.selected-dark { border-color: #26344A; background: rgba(38,52,74,0.04); }
+.f-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; background: #E8633A; color: #fff; padding: 2px 7px; border-radius: 10px; margin-bottom: 8px; }
+.f-num { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(38,52,74,0.4); margin-bottom: 4px; }
+.f-title { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 4px; }
+.f-desc { font-size: 11px; color: #789682; margin-bottom: 10px; line-height: 1.4; }
+.f-price { font-family: 'DM Serif Display', serif; font-size: 24px; }
+.f-price-sub { font-size: 10px; color: rgba(38,52,74,0.45); margin-top: 1px; }
+.check-indicator { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(38,52,74,0.15); margin-top: 12px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; transition: all 0.2s; }
+.formule-card.selected .check-indicator { background: #E8633A; border-color: #E8633A; color: #fff; }
+.formule-card.selected-dark .check-indicator { background: #26344A; border-color: #26344A; color: #fff; }
+
+/* FORM */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(38,52,74,0.5); }
+input {
+  padding: 11px 14px;
+  border: 1.5px solid rgba(38,52,74,0.12);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #26344A;
+  background: #F8F8F6;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: #E8633A; background: #fff; }
+
+/* SIGNATURE PAD */
+.sig-container { position: relative; }
+#sigCanvas {
+  width: 100%;
+  height: 160px;
+  border: 1.5px solid rgba(38,52,74,0.12);
+  border-radius: 10px;
+  background: #F8F8F6;
+  cursor: crosshair;
+  display: block;
+  touch-action: none;
+}
+#sigCanvas.has-sig { background: #fff; border-color: #26344A; }
+.sig-hint { font-size: 11px; color: rgba(38,52,74,0.35); margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+.clear-btn { font-size: 11px; color: #E8633A; cursor: pointer; font-weight: 500; background: none; border: none; padding: 0; }
+
+/* RECAP BOX */
+.recap { background: #26344A; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.recap-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.recap-row:last-child { margin-bottom: 0; padding-top: 12px; border-top: 1px solid rgba(248,248,246,0.1); }
+.recap-label { font-size: 12px; color: rgba(248,248,246,0.6); }
+.recap-value { font-size: 13px; font-weight: 600; color: #F8F8F6; }
+.recap-total-label { font-size: 13px; color: rgba(248,248,246,0.7); font-weight: 500; }
+.recap-total-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: #F8F8F6; }
+
+/* CGV */
+.cgv-block { display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: rgba(38,52,74,0.04); border-radius: 10px; margin-bottom: 20px; }
+.cgv-block input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: #E8633A; cursor: pointer; flex-shrink: 0; }
+.cgv-text { font-size: 12px; color: rgba(38,52,74,0.65); line-height: 1.6; }
+
+/* BUTTONS */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: #E8633A;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn-primary:hover { background: #d4572f; }
+.btn-primary:disabled { background: rgba(38,52,74,0.2); cursor: not-allowed; }
+.btn-secondary {
+  padding: 10px 20px;
+  background: transparent;
+  color: #26344A;
+  border: 1.5px solid rgba(38,52,74,0.2);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: #26344A; }
+
+/* SUCCESS */
+.success-header { text-align: center; padding: 32px 0 24px; }
+.success-icon { width: 64px; height: 64px; background: rgba(120,150,130,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; }
+.success-title { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 8px; }
+.success-sub { font-size: 14px; color: #789682; }
+
+.payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+.pay-card {
+  border: 2px solid rgba(38,52,74,0.1);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+}
+.pay-card:hover { border-color: #E8633A; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(38,52,74,0.1); }
+.pay-icon { font-size: 28px; margin-bottom: 10px; }
+.pay-title { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 6px; color: #26344A; }
+.pay-desc { font-size: 12px; color: rgba(38,52,74,0.55); line-height: 1.5; }
+.pay-cta { display: inline-block; margin-top: 12px; padding: 8px 16px; background: #E8633A; color: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; }
+
+.rib-box { background: #26344A; border-radius: 12px; padding: 20px; text-align: left; }
+.rib-box .pay-title { color: #F8F8F6; }
+.rib-row { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+.rib-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(248,248,246,0.45); }
+.rib-value { font-size: 14px; font-weight: 600; color: #F8F8F6; font-family: monospace; letter-spacing: 0.5px; margin-bottom: 10px; }
+
+.sig-preview { border: 1px solid rgba(38,52,74,0.1); border-radius: 8px; padding: 8px; display: inline-block; margin-top: 8px; }
+.sig-preview img { height: 50px; display: block; }
+
+.timestamp { font-size: 11px; color: rgba(38,52,74,0.45); margin-top: 6px; }
+
+/* ERROR */
+.error-msg { font-size: 12px; color: #E8633A; margin-top: 6px; display: none; }
+
+/* NAV */
+.nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+.progress { display: flex; gap: 6px; align-items: center; }
+.progress-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(38,52,74,0.15); }
+.progress-dot.active { background: #E8633A; }
+.progress-dot.done { background: #789682; }
+
+@media print {
+  body { padding: 20px 16px; background: #fff; }
+  .btn-primary, .btn-secondary, .step:not(#step4) { display: none !important; }
+  #step4 { display: block !important; }
+  .payment-options { grid-template-columns: 1fr 1fr; gap: 10px; page-break-inside: avoid; }
+  .pay-card { page-break-inside: avoid; break-inside: avoid; }
+  .rib-box { page-break-inside: avoid; break-inside: avoid; }
+  .section { page-break-inside: avoid; break-inside: avoid; border: 1px solid rgba(38,52,74,0.15); }
+  .recap { -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-inside: avoid; }
+  .rib-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pay-cta { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .success-header { padding: 16px 0; }
+  .page { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="brand-name">ICR Conseils</div>
+      <div class="brand-tagline">Vincent Guilhot</div>
+      <div class="brand-address">600 Chemin du Mas<br>26270 Loriol-sur-Drôme<br>SASU ICR Conseils</div>
+    </div>
+    <div class="doc-title">
+      <div class="doc-label">Document</div>
+      <div class="doc-name">Bon de<br>commande</div>
+      <div class="doc-date" id="docDate"></div>
+    </div>
+  </div>
+
+  <!-- STEP 1 : CHOIX FORMULE -->
+  <div class="step active" id="step1">
+    <div class="section">
+      <div class="section-title">Choisissez votre formule</div>
+      <div class="formules">
+
+        <div class="formule-card" onclick="selectFormule(this, 'f1')" data-id="f1" data-price="1500" data-label="Formule 01 — Analyse &amp; Décision" data-stripe="https://buy.stripe.com/8x29AS31PgJnf3Ve3SabK02">
+          <div class="f-num">Formule 01</div>
+          <div class="f-title">Analyse &amp; Décision</div>
+          <div class="f-desc">Vous cherchez, j'analyse chaque bien</div>
+          <div class="f-price">1 500€</div>
+          <div class="f-price-sub">Forfait 3 mois · 500€/mois</div>
+          <div class="check-indicator">✓</div>
+        </div>
+
+        <div class="formule-card" onclick="selectFormule(this, 'f3')" data-id="f3" data-price="3000" data-label="Formule 03 — Méthode &amp; Terrain" data-stripe="https://buy.stripe.com/4gM7sKcCp64Jf3V8JyabK03">
+          <div class="f-num">Formule 03</div>
+          <div class="f-title">Méthode &amp; Terrain</div>
+          <div class="f-desc">Je vous apprends à chercher + visite terrain</div>
+          <div class="f-price">3 000€</div>
+          <div class="f-price-sub">Forfait 3 mois · 1 000€/mois</div>
+          <div class="check-indicator">✓</div>
+        </div>
+
+        <div class="formule-card" onclick="selectFormule(this, 'f2')" data-id="f2" data-price="6000" data-label="Formule 02 — Stratégie totale" data-stripe="https://buy.stripe.com/dRm5kC0THgJn1d5bVKabK04">
+          <div class="f-badge">Complet</div>
+          <div class="f-num">Formule 02</div>
+          <div class="f-title">Stratégie totale</div>
+          <div class="f-desc">De la chasse à la signature</div>
+          <div class="f-price">6 000€</div>
+          <div class="f-price-sub">Forfait 3 mois · 2 000€/mois</div>
+          <div class="check-indicator">✓</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="nav-row">
+      <div class="progress">
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+      <button class="btn-primary" style="width:auto;padding:12px 32px" onclick="goStep2()" id="btnStep2" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 : INFOS CLIENT -->
+  <div class="step" id="step2">
+    <div class="section">
+      <div class="section-title">Vos coordonnées</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom</label>
+          <input type="text" id="prenom" placeholder="Jean" oninput="checkStep2()">
+        </div>
+        <div class="form-group">
+          <label>Nom</label>
+          <input type="text" id="nom" placeholder="Dupont" oninput="checkStep2()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="jean@email.com" oninput="checkStep2()">
+        </div>
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="tel" id="tel" placeholder="06 00 00 00 00" oninput="checkStep2()">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Récapitulatif</div>
+      <div class="recap">
+        <div class="recap-row">
+          <span class="recap-label">Formule</span>
+          <span class="recap-value" id="recapFormule">—</span>
+        </div>
+        <div class="recap-row">
+          <span class="recap-label">Durée</span>
+          <span class="recap-value">3 mois</span>
+        </div>
+        <div class="recap-row">
+          <span class="recap-label">Visio hebdo 1h + SMS &amp; appel 5j/7</span>
+          <span class="recap-value">✓</span>
+        </div>
+        <div class="recap-row">
+          <span class="recap-total-label">Total TTC</span>
+          <span class="recap-total-value" id="recapPrix">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="goStep(1)">← Retour</button>
+      <div class="progress">
+        <div class="progress-dot done"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+      </div>
+      <button class="btn-primary" style="width:auto;padding:12px 32px" onclick="goStep3()" id="btnStep3" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 : SIGNATURE -->
+  <div class="step" id="step3">
+    <div class="section">
+      <div class="section-title">Signature électronique</div>
+      <p style="font-size:13px;color:rgba(38,52,74,0.6);margin-bottom:16px;line-height:1.6;">
+        En signant, vous acceptez les conditions de l'accompagnement ICR Conseils pour une durée de 3 mois, pour un montant de <strong id="sigMontant">—</strong>.
+      </p>
+      <div class="sig-container">
+        <canvas id="sigCanvas" width="660" height="160"></canvas>
+        <div class="sig-hint">
+          <span>Signez dans le cadre ci-dessus (doigt, souris ou stylet)</span>
+          <button class="clear-btn" onclick="clearSig()">Effacer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cgv-block">
+      <input type="checkbox" id="cgv" onchange="checkStep3()">
+      <div class="cgv-text">
+        Je reconnais avoir pris connaissance des conditions d'accompagnement ICR Conseils et j'accepte l'engagement sur 3 mois. ICR Conseils – SASU, 600 Chemin du Mas, 26270 Loriol-sur-Drôme.
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="goStep(2)">← Retour</button>
+      <div class="progress">
+        <div class="progress-dot done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-dot active"></div>
+      </div>
+      <button class="btn-primary" style="width:auto;padding:12px 32px" onclick="finaliser()" id="btnFinal" disabled>Signer &amp; valider ✓</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 : CONFIRMATION -->
+  <div class="step" id="step4">
+    <div class="success-header">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Bon de commande signé !</div>
+      <div class="success-sub" id="successSub"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Récapitulatif signé</div>
+      <div class="recap">
+        <div class="recap-row">
+          <span class="recap-label">Client</span>
+          <span class="recap-value" id="confirmClient">—</span>
+        </div>
+        <div class="recap-row">
+          <span class="recap-label">Formule</span>
+          <span class="recap-value" id="confirmFormule">—</span>
+        </div>
+        <div class="recap-row">
+          <span class="recap-label">Durée</span>
+          <span class="recap-value">3 mois</span>
+        </div>
+        <div class="recap-row">
+          <span class="recap-total-label">Total TTC</span>
+          <span class="recap-total-value" id="confirmPrix">—</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(38,52,74,0.4);margin-bottom:4px;">Signature</div>
+          <div class="sig-preview"><img id="sigImg" src=""></div>
+          <div class="timestamp" id="sigTimestamp"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Procéder au règlement</div>
+      <div class="payment-options">
+        <a id="stripeLink" href="#" target="_blank" class="pay-card">
+          <div class="pay-icon">💳</div>
+          <div class="pay-title">Paiement en ligne</div>
+          <div class="pay-desc">Carte bancaire sécurisée<br>via Stripe</div>
+          <span class="pay-cta">Payer maintenant →</span>
+        </a>
+        <div class="pay-card rib-box">
+          <div class="pay-icon">🏦</div>
+          <div class="pay-title">Virement bancaire</div>
+          <div class="rib-row">
+            <span class="rib-label">Titulaire</span>
+            <span class="rib-value">ICR CONSEILS</span>
+            <span class="rib-label">IBAN</span>
+            <span class="rib-value">FR54 3000 2015 6000 0000 5020 A53</span>
+            <span class="rib-label">BIC</span>
+            <span class="rib-value">CRLYFRPPXXX</span>
+            <span class="rib-label">Référence</span>
+            <span class="rib-value" id="refVirement">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+      <button class="btn-secondary" onclick="window.print()">🖨 Imprimer / sauvegarder en PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// DATE
+const now = new Date();
+document.getElementById('docDate').textContent = now.toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
+
+// STATE
+let selectedCard = null;
+let hasSig = false;
+
+// STEP NAV
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// STEP 1
+function selectFormule(el, id) {
+  document.querySelectorAll('.formule-card').forEach(c => {
+    c.classList.remove('selected', 'selected-dark');
+  });
+  if (id === 'f2') {
+    el.classList.add('selected-dark');
+  } else {
+    el.classList.add('selected');
+  }
+  selectedCard = el;
+  document.getElementById('btnStep2').disabled = false;
+}
+
+function goStep2() {
+  if (!selectedCard) return;
+  document.getElementById('recapFormule').textContent = selectedCard.dataset.label.replace(/&amp;/g, '&');
+  document.getElementById('recapPrix').textContent = parseInt(selectedCard.dataset.price).toLocaleString('fr-FR') + ' €';
+  goStep(2);
+}
+
+// STEP 2
+function checkStep2() {
+  const ok = document.getElementById('prenom').value.trim() &&
+             document.getElementById('nom').value.trim() &&
+             document.getElementById('email').value.includes('@');
+  document.getElementById('btnStep3').disabled = !ok;
+}
+
+function goStep3() {
+  const label = selectedCard.dataset.label.replace(/&amp;/g, '&');
+  const prix = parseInt(selectedCard.dataset.price).toLocaleString('fr-FR') + ' €';
+  document.getElementById('sigMontant').textContent = prix + ' — ' + label;
+  goStep(3);
+}
+
+// SIGNATURE PAD
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let lastX = 0, lastY = 0;
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  if (e.touches) {
+    return {
+      x: (e.touches[0].clientX - r.left) * scaleX,
+      y: (e.touches[0].clientY - r.top) * scaleY
+    };
+  }
+  return {
+    x: (e.clientX - r.left) * scaleX,
+    y: (e.clientY - r.top) * scaleY
+  };
+}
+
+ctx.strokeStyle = '#26344A';
+ctx.lineWidth = 2.5;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+
+canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
+canvas.addEventListener('mousemove', e => {
+  if (!drawing) return;
+  const p = getPos(e);
+  ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+  lastX = p.x; lastY = p.y;
+  hasSig = true; canvas.classList.add('has-sig'); checkStep3();
+});
+canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseleave', () => drawing = false);
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!drawing) return;
+  const p = getPos(e);
+  ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+  lastX = p.x; lastY = p.y;
+  hasSig = true; canvas.classList.add('has-sig'); checkStep3();
+}, {passive:false});
+canvas.addEventListener('touchend', () => drawing = false);
+
+function clearSig() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hasSig = false;
+  canvas.classList.remove('has-sig');
+  checkStep3();
+}
+
+function checkStep3() {
+  const cgv = document.getElementById('cgv').checked;
+  document.getElementById('btnFinal').disabled = !(hasSig && cgv);
+}
+
+// FINALISER
+function finaliser() {
+  const prenom = document.getElementById('prenom').value.trim();
+  const nom = document.getElementById('nom').value.trim();
+  const label = selectedCard.dataset.label.replace(/&amp;/g, '&');
+  const prix = parseInt(selectedCard.dataset.price).toLocaleString('fr-FR') + ' €';
+  const stripe = selectedCard.dataset.stripe;
+  const ts = new Date().toLocaleString('fr-FR');
+  const ref = 'ICR-' + nom.toUpperCase().substring(0,4) + '-' + Date.now().toString().slice(-5);
+
+  document.getElementById('successSub').textContent = prenom + ' ' + nom + ' — ' + label;
+  document.getElementById('confirmClient').textContent = prenom + ' ' + nom;
+  document.getElementById('confirmFormule').textContent = label;
+  document.getElementById('confirmPrix').textContent = prix;
+  document.getElementById('sigImg').src = canvas.toDataURL();
+  document.getElementById('sigTimestamp').textContent = 'Signé le ' + ts;
+  document.getElementById('stripeLink').href = stripe;
+  document.getElementById('refVirement').textContent = ref;
+
+  goStep(4);
+}
+</script>
+</body>
+</html>
